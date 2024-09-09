@@ -1,0 +1,328 @@
+#!/bin/zsh
+
+# Define colors for better visibility
+BLACK='\033[0;30m'
+RESET='\033[0m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+
+# Function to print header with ASCII art
+print_header() {
+    echo -e "${YELLOW}\
+
+                             
+	 _ _ _             _         
+	| | | |___ ___ ___|_|___ ___ 
+	| | | | -_| -_| . | |   | . |
+	|_____|___|___|  _|_|_|_|_  |
+	              |_|       |___|
+
+
+
+${RESET}"
+}
+
+# Function to clear the screen and print the header
+clear_screen() {
+    clear
+    print_header
+}
+
+# Function to prompt user for saving results to a file
+save_results() {
+    echo -e "${YELLOW}Would you like to save the results to a file? (y/n)${RESET}"
+    read -r save
+    if [[ $save == [Yy] ]]; then
+        echo -e "${YELLOW}Enter the filename (e.g., results.txt):${RESET}"
+        read -r filename
+        mv /tmp/results.txt "$filename"
+        echo -e "${GREEN}Results saved to $filename.${RESET}"
+    else
+        echo -e "${RED}Results not saved.${RESET}"
+    fi
+}
+
+# Function to pause and wait for user input
+pause() {
+    echo -e "${BLUE}Press Enter to return to the main menu...${RESET}"
+    read -r
+}
+
+# Function for IP Lookup
+ip_lookup() {
+    local ip="$1"
+    clear_screen
+    echo -e "${GREEN}Looking up IP address: ${RESET}${ip}"
+    curl -s "https://ipinfo.io/${ip}/json" | jq . | tee /tmp/results.txt
+    save_results
+    pause
+}
+
+# Function for Phone Lookup using Numverify API
+phone_lookup() {
+    local phone="$1"
+    clear_screen
+    echo -e "${YELLOW}Enter your Numverify API key:${RESET}"
+    read -r api_key
+    echo -e "${GREEN}Looking up phone number: ${RESET}${phone}"
+    curl -s "http://apilayer.net/api/validate?access_key=${api_key}&number=${phone}" | jq . | tee /tmp/results.txt
+    save_results
+    pause
+}
+
+# Function for Website Vulnerability Testing
+web_vulnerability_test() {
+    local url="$1"
+    clear_screen
+    echo -e "${GREEN}Testing website: ${RESET}${url}"
+
+    echo -e "${YELLOW}Checking HTTP headers...${RESET}"
+    curl -sI "$url" | tee /tmp/results.txt
+
+    echo -e "${YELLOW}Checking for common vulnerabilities...${RESET}"
+    echo "Checking for open redirects..."
+    curl -s -o /dev/null -w "%{http_code}" "$url" -G --data-urlencode "redirect=https://evil.com" | tee -a /tmp/results.txt
+
+    echo -e "${GREEN}Testing complete.${RESET}"
+    echo "Check /tmp/results.txt for results."
+    save_results
+    pause
+}
+
+# Function for Ping Test
+ping_test() {
+    local host="$1"
+    clear_screen
+    echo -e "${GREEN}Pinging host: ${RESET}${host}"
+    ping -c 4 "$host" | tee /tmp/results.txt
+    save_results
+    pause
+}
+
+# Function for Nmap Scans
+nmap_scan() {
+    local host="$1"
+    local port="$2"
+    clear_screen
+    echo -e "${GREEN}Scanning ports ${port} on ${host} with nmap...${RESET}"
+    nmap -p "$port" "$host" | tee /tmp/results.txt
+    save_results
+    pause
+}
+
+# Function for Nmap OS Scan
+nmap_os_scan() {
+    local host="$1"
+    clear_screen
+    echo -e "${GREEN}Performing OS detection scan on ${host} with nmap...${RESET}"
+    nmap -O "$host" | tee /tmp/results.txt
+    save_results
+    pause
+}
+
+# Function for Nmap Service Version Scan
+nmap_service_scan() {
+    local host="$1"
+    clear_screen
+    echo -e "${GREEN}Performing service version scan on ${host} with nmap...${RESET}"
+    nmap -sV "$host" | tee /tmp/results.txt
+    save_results
+    pause
+}
+
+# Function for SQLmap
+sqlmap_scan() {
+    local url="$1"
+    clear_screen
+    echo -e "${GREEN}Scanning URL with SQLmap: ${RESET}${url}"
+    sqlmap -u "$url" --batch | tee /tmp/results.txt
+    save_results
+    pause
+}
+
+# Function for SQLmap Blind SQL Injection Scan
+sqlmap_blind_scan() {
+    local url="$1"
+    clear_screen
+    echo -e "${GREEN}Performing Blind SQL Injection scan on URL: ${RESET}${url}"
+    sqlmap -u "$url" --batch --technique=B | tee /tmp/results.txt
+    save_results
+    pause
+}
+
+# Function for SQLmap Time-Based Blind SQL Injection Scan
+sqlmap_time_based_blind_scan() {
+    local url="$1"
+    clear_screen
+    echo -e "${GREEN}Performing Time-Based Blind SQL Injection scan on URL: ${RESET}${url}"
+    sqlmap -u "$url" --batch --technique=BT | tee /tmp/results.txt
+    save_results
+    pause
+}
+
+# Function for SQLmap Error-Based SQL Injection Scan
+sqlmap_error_based_scan() {
+    local url="$1"
+    clear_screen
+    echo -e "${GREEN}Performing Error-Based SQL Injection scan on URL: ${RESET}${url}"
+    sqlmap -u "$url" --batch --technique=E | tee /tmp/results.txt
+    save_results
+    pause
+}
+
+# Function for DNS Lookup using NetworkCalc API
+dns_lookup() {
+    local domain="$1"
+    local api_key="YOUR_NETWORKCALC_API_KEY"  # Replace with your NetworkCalc API key
+    clear_screen
+    echo -e "${GREEN}Performing DNS lookup for: ${RESET}${domain}"
+    curl -s "https://networkcalc.com/api/dns/lookup/${domain}?apikey=${api_key}" | jq . | tee /tmp/results.txt
+    save_results
+    pause
+}
+
+# Function for Useful Websites
+useful_websites() {
+    clear_screen
+    echo -e "${GREEN}Useful Websites:${RESET}"
+    echo -e "${YELLOW}1. https://whatsmyname.app/${RESET}"
+    echo -e "${YELLOW}2. https://web.archive.org/${RESET}"
+    echo -e "${YELLOW}3. https://urlscan.io/${RESET}"
+    echo -e "${YELLOW}4. https://iplogger.org/${RESET}"
+    echo -e "${YELLOW}5. https://dnsdumpster.com/${RESET}"
+    echo -e "${YELLOW}6. https://opencorporates.com/${RESET}"
+    echo -e "${YELLOW}7. https://epieos.com/${RESET}"
+    echo -e "${YELLOW}8. https://www.smspool.net/login${RESET}"
+    echo -e "${YELLOW}9. https://fmhy.net/${RESET}"
+    pause
+}
+
+# Function to check if the script is run as root
+check_sudo() {
+    if [[ $EUID -ne 0 ]]; then
+        echo -e "${YELLOW}This script may require elevated privileges for some features.${RESET}"
+        echo -e "${YELLOW}Would you like to continue without sudo? (y/n)${RESET}"
+        read -r continue_without_sudo
+        if [[ $continue_without_sudo != [Yy] ]]; then
+            echo -e "${RED}Exiting. Please run the script as sudo for full functionality.${RESET}"
+            exit 1
+        fi
+    fi
+}
+
+# Main function
+main() {
+    check_sudo
+    while true; do
+        clear_screen
+        echo -e "${GREEN}Select an option:${RESET}"
+        echo -e "${GREEN}1. IP Lookup${RESET}                      ${GREEN}6. Nmap Scans${RESET}"
+        echo -e "${GREEN}2. Phone Lookup${RESET}                   ${GREEN}7. SQLmap Scans${RESET}"
+        echo -e "${GREEN}3. Website Vulnerability Test${RESET}     ${GREEN}8. DNS Lookup${RESET}"
+        echo -e "${GREEN}4. Ping Test${RESET}                      ${GREEN}9. Exit${RESET}"
+	echo -e "${GREEN}5. Useful Websites${RESET}"
+        read -r choice
+
+        case $choice in
+            1)
+                echo -e "${YELLOW}Enter IP address:${RESET}"
+                read -r ip
+                ip_lookup "$ip"
+                ;;
+            2)
+                echo -e "${YELLOW}Enter phone number:${RESET}"
+                read -r phone
+                phone_lookup "$phone"
+                ;;
+            3)
+                echo -e "${YELLOW}Enter website URL:${RESET}"
+                read -r url
+                web_vulnerability_test "$url"
+                ;;
+            4)
+                echo -e "${YELLOW}Enter host to ping:${RESET}"
+                read -r host
+                ping_test "$host"
+                ;;
+            6)
+                clear_screen
+                echo -e "${GREEN}Nmap Scans:${RESET}"
+                echo -e "${YELLOW}a. Basic Port Scan${RESET}"
+                echo -e "${YELLOW}b. OS Detection${RESET}"
+                echo -e "${YELLOW}c. Service Version Scan${RESET}"
+                echo -e "${YELLOW}Choose scan type:${RESET}"
+                read -r nmap_choice
+                echo -e "${YELLOW}Enter host:${RESET}"
+                read -r host
+                case $nmap_choice in
+                    a)
+                        echo -e "${YELLOW}Enter ports (e.g., 1-800 or 80):${RESET}"
+                        read -r ports
+                        nmap_scan "$host" "$ports"
+                        ;;
+                    b)
+                        nmap_os_scan "$host"
+                        ;;
+                    c)
+                        nmap_service_scan "$host"
+                        ;;
+                    *)
+                        echo -e "${RED}Invalid option.${RESET}"
+                        pause
+                        ;;
+                esac
+                ;;
+            7)
+                clear_screen
+                echo -e "${GREEN}SQLmap Scans:${RESET}"
+                echo -e "${YELLOW}a. Basic SQL Injection${RESET}"
+                echo -e "${YELLOW}b. Blind SQL Injection${RESET}"
+                echo -e "${YELLOW}c. Time-Based Blind SQL Injection${RESET}"
+                echo -e "${YELLOW}d. Error-Based SQL Injection${RESET}"
+                echo -e "${YELLOW}Choose scan type:${RESET}"
+                read -r sql_choice
+                echo -e "${YELLOW}Enter URL:${RESET}"
+                read -r url
+                case $sql_choice in
+                    a)
+                        sqlmap_scan "$url"
+                        ;;
+                    b)
+                        sqlmap_blind_scan "$url"
+                        ;;
+                    c)
+                        sqlmap_time_based_blind_scan "$url"
+                        ;;
+                    d)
+                        sqlmap_error_based_scan "$url"
+                        ;;
+                    *)
+                        echo -e "${RED}Invalid option.${RESET}"
+                        pause
+                        ;;
+                esac
+                ;;
+            8)
+                echo -e "${YELLOW}Enter domain:${RESET}"
+                read -r domain
+                dns_lookup "$domain"
+                ;;
+            5)
+                useful_websites
+                ;;
+            9)
+                echo -e "${GREEN}Exiting...${RESET}"
+                exit 0
+                ;;
+            *)
+                echo -e "${RED}Invalid option. Please choose a number between 1 and 9.${RESET}"
+                pause
+                ;;
+        esac
+    done
+}
+
+# Start the main function
+main
